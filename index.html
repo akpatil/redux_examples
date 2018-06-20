@@ -1,0 +1,177 @@
+<html>
+<head>
+	<title>React-Redux Todo App</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.0/redux.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+</head>
+<body>
+	<div id="root"></div>
+	<script type="text/babel">
+		/* Reducer Component => Todos */
+		const todos = (state=[], action) => {
+			switch(action.type) {
+				case 'ADD_TODO':
+					return [
+						...state,
+						{
+							id: action.id,
+							title: action.title,
+							completed: false
+						}
+					]
+				case 'TOGGLE_TODO':
+					return state.map(t => {
+						if(t.id !== action.id) 
+							return t
+						return {
+							...t,
+							completed: !t.completed
+						}
+					})
+				default: 
+					return state
+			}
+		}
+
+		/* Reducer Component => Visibility Filter */
+		const visibilityFilter = (state='SHOW_ALL', action) => {
+			switch(action.type) {
+				case 'SET_VISIBILITY_FILTER':
+					return action.filter
+				default: 
+					return state
+			}
+		}
+
+		/* Create Combined Reducer */
+		const {combineReducers} = Redux
+		const todoReducer = combineReducers({
+			todos,
+			visibilityFilter
+		})
+
+		/* Create Redux Store */
+		const {createStore} = Redux
+		const store = createStore(todoReducer)
+
+		/* Presentational Component => AddTodo */
+		var todoCount = 0
+		const AddTodo = () => {
+			let todoInput = ''
+			return (
+				<div>
+					<input 
+						type="text"
+						ref={ node => {
+							todoInput = node
+						} } />
+					<button 
+						type="button"
+						onClick={ (e) => {
+							e.preventDefault()
+							store.dispatch({
+								type: 'ADD_TODO',
+								id: todoCount++,
+								title: todoInput.value
+							})
+							todoInput.value=''
+						} }>Add Todo</button>
+				</div>
+			)
+		}
+
+		/* Presentational Component => Individual Todo */
+		const Todo = ({onTodoClick, title, completed}) => {
+			return (
+				<li
+					style={{ textDecoration: completed ? 'line-through':'' }}
+					onClick={ () => onTodoClick() }>{title}</li>
+			)
+		}
+
+		/* Presentational Component => Todo List */
+		const TodoList = ({todos}) => {
+			return (
+				<div>
+					<ul>
+						{ todos.map(t => <Todo 
+											key={t.id}
+											{...t}
+											onTodoClick={ () => {
+												store.dispatch({
+													type: 'TOGGLE_TODO',
+													id: t.id
+												}) 
+											}} />) }
+					</ul>
+				</div>
+			)
+		}
+
+		/* Presentational Component => Filter */
+		const Filter = ({filter, children}) => {
+			return (
+				<a 
+					href="#"
+					onClick={ () => {
+						store.dispatch({
+							type: 'SET_VISIBILITY_FILTER',
+							filter: filter
+						})
+					} }>{children}</a>
+			)
+		}
+
+		/* Presentational Component => FilterList */
+		const FilterList = () => {
+			return (
+				<div>
+					<Filter filter={'SHOW_ALL'}>All</Filter>
+					{' '}
+					<Filter filter={'SHOW_ACTIVE'}>Active</Filter>
+					{' '}
+					<Filter filter={'SHOW_COMPLETED'}>Completed</Filter>
+				</div>
+			)
+		}
+
+		const visibleTodoList = (todos, visibilityFilter) => {
+			switch(visibilityFilter) {
+				case 'SHOW_COMPLETED':
+					return todos.filter( t => t.completed )
+				case 'SHOW_ACTIVE':
+					return todos.filter( t => !t.completed )
+				default: 
+					return todos
+			}
+		}
+
+		/* Container Component => TodoApp */
+		class TodoApp extends React.Component {
+			render() {
+
+				const visibleTodos = visibleTodoList(this.props.todos, this.props.visibilityFilter)
+				return (
+					<div>
+						<AddTodo />
+						<TodoList todos={visibleTodoList(this.props.todos, this.props.visibilityFilter)} />
+						<FilterList />
+					</div>
+				)
+			}
+		}
+
+		const render = () => {
+			ReactDOM.render(
+				<TodoApp 
+					todos={store.getState().todos} 
+					visibilityFilter={store.getState().visibilityFilter} />, 
+				document.getElementById("root"))
+		}
+		render()
+		store.subscribe(render)
+	</script>
+</body>
+</html>
