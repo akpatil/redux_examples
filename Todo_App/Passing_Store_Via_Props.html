@@ -52,13 +52,9 @@
 			visibilityFilter
 		})
 
-		/* Create Redux Store */
-		const {createStore} = Redux
-		const store = createStore(todoReducer)
-
 		/* Presentational Component => AddTodo */
 		var todoCount = 0
-		const AddTodo = () => {
+		const AddTodo = ({ store }) => {
 			let todoInput = ''
 			return (
 				<div>
@@ -92,7 +88,7 @@
 		}
 
 		/* Presentational Component => Todo List */
-		const TodoList = ({todos}) => {
+		const TodoList = ({store, todos}) => {
 			return (
 				<div>
 					<ul>
@@ -113,6 +109,7 @@
 		/* class component => Filters */
 		class Filters extends React.Component {
 			componentDidMount() {
+				const { store } = this.props
 				this.unsubscribe = store.subscribe( () => this.forceUpdate() )
 			}
 
@@ -122,6 +119,7 @@
 
 			render() {
 				const props = this.props
+				const { store } = this.props
 				const state = store.getState()
 				return (
 					<a 
@@ -136,29 +134,15 @@
 			}
 		}
 
-		/* Presentational Component => Filter */
-		const Filter = ({filter, children}) => {
-			return (
-				<a 
-					href="#"
-					onClick={ () => {
-						store.dispatch({
-							type: 'SET_VISIBILITY_FILTER',
-							filter: filter
-						})
-					} }>{children}</a>
-			)
-		}
-
 		/* Presentational Component => FilterList */
-		const FilterList = () => {
+		const FilterList = ({ store }) => {
 			return (
 				<div>
-					<Filters filter={'SHOW_ALL'}>All</Filters>
+					<Filters store={store} filter={'SHOW_ALL'}>All</Filters>
 					{' '}
-					<Filters filter={'SHOW_ACTIVE'}>Active</Filters>
+					<Filters store={store} filter={'SHOW_ACTIVE'}>Active</Filters>
 					{' '}
-					<Filters filter={'SHOW_COMPLETED'}>Completed</Filters>
+					<Filters store={store} filter={'SHOW_COMPLETED'}>Completed</Filters>
 				</div>
 			)
 		}
@@ -177,6 +161,7 @@
 		/* Container Component => TodoApp */
 		class VisibleTodo extends React.Component {
 			componentDidMount() {
+				const { store } = this.props
 				this.unsubscribe = store.subscribe( () => this.forceUpdate() )
 			}
 
@@ -185,28 +170,32 @@
 			}
 			render() {
 				const props = this.props
+				const { store } = this.props
 				const state = store.getState()
 				const visibleTodos = visibleTodoList(state.todos, state.visibilityFilter)
 				return (
 					<div>
-						<TodoList todos={visibleTodos} />
+						<TodoList store={store} todos={visibleTodos} />
 					</div>
 				)
 			}
 		}
 
-		const TodoApp = () => {
+		const TodoApp = ({ store }) => {
 			return (
 				<div>
-					<AddTodo />
-					<VisibleTodo />
-					<FilterList />
+					<AddTodo store={store} />
+					<VisibleTodo store={store} />
+					<FilterList store={store} />
 				</div>
 			)
 		}
 
+		/* Create Redux Store */
+		const {createStore} = Redux
+
 		ReactDOM.render(
-			<TodoApp />, 
+			<TodoApp store={createStore(todoReducer)} />, 
 			document.getElementById("root"))
 	</script>
 </body>
