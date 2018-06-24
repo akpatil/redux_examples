@@ -3,7 +3,6 @@
 	<title>React-Redux Todo App</title>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.6.2/prop-types.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.0/redux.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
 </head>
@@ -191,7 +190,7 @@
 		}
 
 		VisibleTodo.contextTypes = {
-			store: React.ProtoTypes.object
+			store: React.PropTypes.object
 		}
 
 		const TodoApp = () => {
